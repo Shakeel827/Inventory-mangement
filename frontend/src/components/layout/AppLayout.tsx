@@ -31,7 +31,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
         <nav className="flex-1 space-y-1 text-xs font-medium">
           <NavLink
-            to="/"
+            to="/dashboard"
             end
             className={({ isActive }) =>
               `block rounded-md px-3 py-2 transition ${
@@ -60,7 +60,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           {profile?.role !== "user" && (
             <>
               <NavLink
-                to="/devices"
+                to="/dashboard/devices"
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 transition ${
                     isActive
@@ -72,7 +72,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 Devices
               </NavLink>
               <NavLink
-                to="/stickers"
+                to="/dashboard/stickers"
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 transition ${
                     isActive
@@ -84,8 +84,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 QR Stickers
               </NavLink>
               <NavLink
-                to="/categories"
-                className={({ isActive }) =>
+                to="/dashboard/categories"
+                className={({ isActive}) =>
                   `block rounded-md px-3 py-2 transition ${
                     isActive
                       ? "bg-primary-600 text-white shadow-md shadow-primary-600/40"
@@ -96,7 +96,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 Categories
               </NavLink>
               <NavLink
-                to="/maintenance"
+                to="/dashboard/maintenance"
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 transition ${
                     isActive
@@ -108,7 +108,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 Maintenance
               </NavLink>
               <NavLink
-                to="/reports"
+                to="/dashboard/reports"
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 transition ${
                     isActive
@@ -120,7 +120,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 Reports
               </NavLink>
               <NavLink
-                to="/audit"
+                to="/dashboard/audit"
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 transition ${
                     isActive
@@ -148,7 +148,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           {profile?.role === "admin" && (
             <>
               <NavLink
-                to="/users"
+                to="/dashboard/users"
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 transition ${
                     isActive
@@ -178,7 +178,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="flex-1 flex flex-col">
         {/* Mobile Header */}
         <header className="flex h-14 items-center justify-between border-b border-slate-800 bg-slate-950/80 px-4 md:hidden backdrop-blur-sm sticky top-0 z-50">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/dashboard" className="flex items-center gap-2">
             <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-xs font-bold shadow-lg shadow-primary-600/40">
               IQ
             </div>
@@ -197,7 +197,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="md:hidden border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm">
             <nav className="p-4 space-y-1 text-xs font-medium">
               <NavLink
-                to="/"
+                to="/dashboard"
                 end
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
@@ -228,7 +228,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               {profile?.role !== "user" && (
                 <>
                   <NavLink
-                    to="/devices"
+                    to="/dashboard/devices"
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
                       `block rounded-md px-3 py-2 transition ${
@@ -241,7 +241,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     Devices
                   </NavLink>
                   <NavLink
-                    to="/stickers"
+                    to="/dashboard/stickers"
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
                       `block rounded-md px-3 py-2 transition ${
@@ -254,7 +254,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     QR Stickers
                   </NavLink>
                   <NavLink
-                    to="/categories"
+                    to="/dashboard/categories"
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
                       `block rounded-md px-3 py-2 transition ${
@@ -267,7 +267,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     Categories
                   </NavLink>
                   <NavLink
-                    to="/maintenance"
+                    to="/dashboard/maintenance"
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
                       `block rounded-md px-3 py-2 transition ${
@@ -280,7 +280,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     Maintenance
                   </NavLink>
                   <NavLink
-                    to="/reports"
+                    to="/dashboard/reports"
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
                       `block rounded-md px-3 py-2 transition ${
@@ -293,7 +293,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     Reports
                   </NavLink>
                   <NavLink
-                    to="/audit"
+                    to="/dashboard/audit"
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
                       `block rounded-md px-3 py-2 transition ${
@@ -323,7 +323,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               {profile?.role === "admin" && (
                 <>
                   <NavLink
-                    to="/users"
+                    to="/dashboard/users"
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
                       `block rounded-md px-3 py-2 transition ${
@@ -362,4 +362,3 @@ export function AppLayout({ children }: AppLayoutProps) {
     </div>
   );
 }
-

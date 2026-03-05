@@ -185,21 +185,19 @@ function AppRoutes() {
             <AppLayout>
               <Routes>
                 <Route path="/" element={<DashboardPage />} />
-                <Route path="/devices" element={<DevicesPage />} />
-                <Route path="/devices/:deviceId" element={<DeviceDetailsPage />} />
-                <Route path="/stickers" element={<StickersPage />} />
-                <Route path="/categories" element={<CategoriesPage />} />
-                <Route path="/maintenance" element={<MaintenancePage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/audit" element={<AuditLogsPage />} />
-                <Route path="/users" element={<UsersPage />} />
+                <Route path="devices" element={<DevicesPage />} />
+                <Route path="devices/:deviceId" element={<DeviceDetailsPage />} />
+                <Route path="stickers" element={<StickersPage />} />
+                <Route path="categories" element={<CategoriesPage />} />
+                <Route path="maintenance" element={<MaintenancePage />} />
+                <Route path="reports" element={<ReportsPage />} />
+                <Route path="audit" element={<AuditLogsPage />} />
+                <Route path="users" element={<UsersPage />} />
               </Routes>
             </AppLayout>
           </ProtectedRoute>
         }
       />
-      {/* Catch-all route - redirect to landing page */}
-      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
