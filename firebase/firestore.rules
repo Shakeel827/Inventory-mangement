@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userOrgId() {
+      return request.auth.token.orgId;
+    }
+
+    function isOrgMember(resourceOrgId) {
+      return isSignedIn() && userOrgId() == resourceOrgId;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'admin';
+    }
+
+    function isAdminOrManager() {
+      return isSignedIn() && getUserRole() in ['admin', 'manager'];
+    }
+
+    // Users: org-scoped profiles (non-sensitive)
+    match /users/{userId} {
+      allow read: if isSignedIn() && userOrgId() == resource.data.orgId;
+      // Allow client to create/update own profile document in this dev setup.
+      allow create, update: if isSignedIn() && request.auth.uid == userId;
+      // Only admins can update other users' roles
+      allow update: if isAdmin() && isOrgMember(resource.data.orgId);
+      allow delete: if false;
+    }
+
+    // Categories: only admin and manager can manage
+    match /categories/{categoryId} {
+      allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
+
+      allow create, update, delete: if isAdminOrManager()
+        && request.resource.data.orgId == userOrgId();
+    }
+
+    // Devices: only admin and manager can manage
+    match /devices/{deviceId} {
+      allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
+
+      allow create: if isAdminOrManager()
+        && request.resource.data.orgId == userOrgId();
+
+      // Allow status updates for check-in/check-out by all users
+      allow update: if isSignedIn()
+        && isOrgMember(resource.data.orgId)
+        && request.resource.data.orgId == resource.data.orgId
+        && (
+          // Admin/Manager can update everything
+          isAdminOrManager()
+          // Scanner users can only update status field
+          || (getUserRole() == 'user' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']))
+        );
+
+      allow delete: if isAdminOrManager() && isOrgMember(resource.data.orgId);
+    }
+
+    // Device activity: allow all authenticated users to create logs
+    match /deviceActivity/{activityId} {
+      allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
+
+      allow create: if isSignedIn()
+        && request.resource.data.orgId == userOrgId()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow update, delete: if false;
+    }
+
+    // Maintenance logs: only admin and manager
+    match /maintenanceLogs/{logId} {
+      allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
+
+      allow create: if isAdminOrManager()
+        && request.resource.data.orgId == userOrgId();
+
+      allow update, delete: if false;
+    }
+
+    // Audit logs (read-only from client)
+    match /auditLogs/{auditId} {
+      allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
+      allow create, update, delete: if false;
+    }
+
+    // Fallback: deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
