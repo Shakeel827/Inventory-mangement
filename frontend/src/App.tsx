@@ -198,6 +198,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      {/* Catch-all route - redirect to landing page */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
