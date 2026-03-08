@@ -365,6 +365,6 @@ Detailed Excel reports with customizable data
 
 ---
 
-**Made with ❤️ by Shakeel Ahmad**
+**Made with ❤️ by Shakeel**
 
 ⭐ Star this repo if you find it helpful!
