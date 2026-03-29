@@ -26,9 +26,10 @@ import { ReportsPage } from "./pages/ReportsPage";
 import { AuditLogsPage } from "./pages/AuditLogsPage";
 import { StickersPage } from "./pages/StickersPage";
 import { UsersPage } from "./pages/UsersPage";
-import { FieldsPage } from "./pages/FieldsPage";
 import { QRScannerPage } from "./pages/QRScannerPage";
 import { DeviceDetailsPage } from "./pages/DeviceDetailsPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
+import { TermsPage } from "./pages/TermsPage";
 import { DEVICE_STATUS } from "./constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -176,6 +177,8 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
       <Route path="/scan" element={<QRScannerPage />} />
       <Route path="/d/:orgSlug/:deviceId" element={<DeviceScanPage />} />
       <Route

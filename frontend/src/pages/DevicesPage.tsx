@@ -5,7 +5,6 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  orderBy,
   query,
   updateDoc,
   where,
@@ -38,15 +37,7 @@ interface CustomField {
 export function DevicesPage() {
   const { profile } = useAuth();
 
-  // Role-based access control
-  if (profile?.role === "user") {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <p className="text-sm text-slate-400">Scanner users cannot access this page.</p>
-      </div>
-    );
-  }
-
+  // All hooks must be declared before any early returns (React rules of hooks)
   const [devices, setDevices] = useState<Device[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<DeviceStatus | "all">("all");
@@ -58,8 +49,6 @@ export function DevicesPage() {
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [addingDevice, setAddingDevice] = useState(false);
   const [deletingDevice, setDeletingDevice] = useState<string | null>(null);
-  
-  // Custom fields state
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [showFieldsManager, setShowFieldsManager] = useState(false);
   const [newFieldLabel, setNewFieldLabel] = useState("");
@@ -67,17 +56,22 @@ export function DevicesPage() {
   const [newFieldRequired, setNewFieldRequired] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editFieldLabel, setEditFieldLabel] = useState("");
-
-  // categories for dropdowns
   const [categories, setCategories] = useState<Category[]>([]);
-
-  // manual add form state with custom fields
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState<string | null>(null);
   const [newLocation, setNewLocation] = useState("");
   const [newStatus, setNewStatus] = useState<DeviceStatus>("available");
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Role-based access control — after all hooks
+  if (profile?.role === "user") {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-sm text-slate-400">Scanner users cannot access this page.</p>
+      </div>
+    );
+  }
 
   // Load custom fields
   useEffect(() => {
@@ -100,14 +94,14 @@ export function DevicesPage() {
     loadFields();
   }, [profile]);
 
-  // Load devices
+  // Load devices - using onSnapshot for real-time updates
+  // Note: sorting client-side to avoid requiring composite Firestore index
   useEffect(() => {
     if (!profile) return;
     setLoadingDevices(true);
     const q = query(
       collection(db, "devices"),
-      where("orgId", "==", profile.orgId),
-      orderBy("name")
+      where("orgId", "==", profile.orgId)
     );
     const unsub = onSnapshot(q, (snap) => {
       const list: Device[] = [];
@@ -126,8 +120,14 @@ export function DevicesPage() {
           createdAt: data.createdAt?.toDate?.() ?? null
         });
       });
+      // Sort client-side by name to avoid needing composite index
+      list.sort((a, b) => a.name.localeCompare(b.name));
       setDevices(list);
       setLoadingDevices(false);
+    }, (error) => {
+      console.error("Firestore listener error:", error);
+      setLoadingDevices(false);
+      toast.error("Failed to load devices. Please refresh.");
     });
     return () => unsub();
   }, [profile]);
@@ -905,7 +905,7 @@ export function DevicesPage() {
                 </td>
                 <td className="px-3 py-2 text-right text-[11px] space-x-1">
                   <Link
-                    to={`/devices/${d.id}`}
+                    to={`/dashboard/devices/${d.id}`}
                     className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-200 hover:bg-slate-800 transition"
                   >
                     History

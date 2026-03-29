@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  signInWithPopup
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { motion } from "framer-motion";
 import { auth } from "../firebaseClient";
 
@@ -23,111 +19,113 @@ export function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogle = async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      navigate("/dashboard");
-    } catch (err: any) {
-      setError(err.message || "Google sign-in failed");
+      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        setError("Invalid email or password. Please try again.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Too many failed attempts. Please try again later.");
+      } else {
+        setError(err.message || "Login failed");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4">
+      {/* Background glow effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary-800/10 rounded-full blur-3xl" />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md mx-4 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-2xl p-8 backdrop-blur"
+        className="relative w-full max-w-md rounded-2xl bg-slate-900/80 border border-slate-800 shadow-2xl p-8 backdrop-blur"
       >
+        {/* Logo */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-white">
-            Inventory Cloud
-          </h1>
-          <p className="mt-2 text-sm text-slate-300">
-            Sign in to manage and track your assets.
-          </p>
+          <Link to="/" className="inline-flex flex-col items-center gap-3">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-xl font-bold shadow-xl shadow-primary-600/40">
+              IQ
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Welcome back</h1>
+              <p className="mt-1 text-sm text-slate-400">Sign in to your InventoryQ account</p>
+            </div>
+          </Link>
         </div>
 
-        <form
-          onSubmit={handleEmailLogin}
-          className="flex flex-col gap-4"
-        >
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-slate-200">
-              Email
-            </label>
+        <form onSubmit={handleEmailLogin} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-slate-300 uppercase tracking-wide">Email</label>
             <input
               type="email"
-              className="h-10 rounded-lg border border-slate-700 bg-slate-900/60 px-3 text-sm text-slate-50 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/40 transition"
+              required
+              autoComplete="email"
+              className="h-11 rounded-xl border border-slate-700 bg-slate-800/60 px-4 text-sm text-slate-50 placeholder-slate-500 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 transition"
               placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-slate-200">
-              Password
-            </label>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-slate-300 uppercase tracking-wide">Password</label>
             <input
               type="password"
-              className="h-10 rounded-lg border border-slate-700 bg-slate-900/60 px-3 text-sm text-slate-50 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/40 transition"
-              placeholder="********"
+              required
+              autoComplete="current-password"
+              className="h-11 rounded-xl border border-slate-700 bg-slate-800/60 px-4 text-sm text-slate-50 placeholder-slate-500 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 transition"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+
           {error && (
-            <p className="text-xs text-rose-400 bg-rose-950/60 border border-rose-900 rounded-md px-3 py-2">
+            <motion.p
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs text-rose-400 bg-rose-950/60 border border-rose-900/60 rounded-lg px-3 py-2"
+            >
               {error}
-            </p>
+            </motion.p>
           )}
+
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 h-10 rounded-lg bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-sm font-medium text-white shadow-lg shadow-primary-600/40 transition"
+            className="mt-2 h-11 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-sm font-semibold text-white shadow-lg shadow-primary-600/40 transition active:scale-95"
           >
-            {loading ? "Logging in..." : "Sign in with email"}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Signing in...
+              </span>
+            ) : "Sign In"}
           </button>
         </form>
 
-        <div className="mt-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-slate-700" />
-          <span className="text-xs uppercase tracking-wide text-slate-400">
-            Or
-          </span>
-          <div className="h-px flex-1 bg-slate-700" />
+        <div className="mt-6 text-center text-xs text-slate-500">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-primary-400 hover:text-primary-300 font-medium transition">
+            Create account
+          </Link>
         </div>
 
-        <button
-          type="button"
-          onClick={handleGoogle}
-          disabled={loading}
-          className="mt-4 h-10 w-full rounded-lg bg-white text-slate-900 text-sm font-medium flex items-center justify-center gap-2 shadow-md hover:bg-slate-100 transition disabled:opacity-60"
-        >
-          <span className="text-lg">G</span>
-          <span>Continue with Google</span>
-        </button>
-
-        <div className="mt-6 text-center text-xs text-slate-400">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-primary-400 hover:text-primary-300 underline">
-            Create admin account
-          </Link>
+        <div className="mt-4 text-center text-xs text-slate-600">
+          By signing in, you agree to our{" "}
+          <Link to="/privacy" className="text-slate-400 hover:text-slate-300 transition">Privacy Policy</Link>
+          {" & "}
+          <Link to="/terms" className="text-slate-400 hover:text-slate-300 transition">Terms of Service</Link>
         </div>
       </motion.div>
     </div>
   );
 }
-
