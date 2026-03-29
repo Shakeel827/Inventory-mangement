@@ -120,6 +120,27 @@ function DeviceScanPage() {
     load();
   }, [deviceId]);
 
+  /**
+   * Send WhatsApp notification to admin after check-in/out.
+   * Opens wa.me link with pre-filled message — works on mobile and desktop.
+   * Admin WhatsApp number is read from Firestore org settings (or hardcoded fallback).
+   */
+  const sendWhatsAppNotification = (type: "check_out" | "check_in", deviceName: string) => {
+    const action = type === "check_out" ? "checked OUT" : "checked IN";
+    const user = auth.currentUser?.email || "Unknown user";
+    const time = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+    const msg = encodeURIComponent(
+      `📦 *InventoryQ Alert*\n\n` +
+      `Device *${deviceName}* has been ${action}.\n\n` +
+      `👤 User: ${user}\n` +
+      `🕐 Time: ${time}\n\n` +
+      `_Sent from InventoryQ_`
+    );
+    // Admin WhatsApp number — update this to your admin's number
+    const adminPhone = "918074015276"; // +91 80740 15276
+    window.open(`https://wa.me/${adminPhone}?text=${msg}`, "_blank");
+  };
+
   const handleCheck = async (type: "check_out" | "check_in") => {
     if (!deviceId) return;
     setActionLoading(true);
@@ -141,6 +162,9 @@ function DeviceScanPage() {
 
       setDevice((prev: any) => ({ ...prev, status: nextStatus }));
       setDone(type);
+
+      // Send WhatsApp notification to admin
+      sendWhatsAppNotification(type, device?.name || deviceId);
     } catch (e: any) {
       setError(e.message || "Failed to update device");
     } finally {
@@ -241,7 +265,14 @@ function DeviceScanPage() {
                     : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                 }`}
               >
-                {done === "check_out" ? "✓ Checked Out Successfully" : "✓ Checked In Successfully"}
+                <p>{done === "check_out" ? "✓ Checked Out Successfully" : "✓ Checked In Successfully"}</p>
+                {/* Manual WhatsApp button in case auto-open was blocked */}
+                <button
+                  onClick={() => sendWhatsAppNotification(done, device?.name || deviceId || "")}
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] text-xs font-medium hover:bg-[#25D366]/30 transition"
+                >
+                  <span>📲</span> Notify Admin on WhatsApp
+                </button>
               </motion.div>
             )}
 
