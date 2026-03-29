@@ -11,8 +11,8 @@
 
 import OpenAI from "openai";
 
-// Default key (low-credit, shared). Users add their own in Settings.
-const DEFAULT_KEY = "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";
+// Key loaded from Vercel environment variable — never hardcoded in source
+const DEFAULT_KEY = import.meta.env.VITE_OPENAI_KEY ?? "";
 
 // Cheapest model — gpt-4o-mini costs ~$0.00015 / 1K input tokens
 const MODEL = "gpt-4o-mini";
