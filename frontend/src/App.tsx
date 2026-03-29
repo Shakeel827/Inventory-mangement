@@ -41,13 +41,56 @@ import { VendorsPage } from "./pages/VendorsPage";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { firebaseUser, loading } = useAuth();
+  const [timedOut, setTimedOut] = useState(false);
+
+  // If loading takes more than 5s, show a retry option instead of spinning forever
+  useEffect(() => {
+    if (!loading) return;
+    const t = setTimeout(() => setTimedOut(true), 5000);
+    return () => clearTimeout(t);
+  }, [loading]);
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-200 text-sm">
-        Loading...
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050810] gap-6">
+        {/* Animated logo */}
+        <motion.div
+          animate={{ scale: [1, 1.08, 1], opacity: [0.7, 1, 0.7] }}
+          transition={{ repeat: Infinity, duration: 1.8 }}
+          className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-xl font-black text-white shadow-2xl shadow-primary-600/40"
+        >
+          IQ
+        </motion.div>
+
+        {!timedOut ? (
+          <>
+            <div className="flex gap-1.5">
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }}
+                  className="w-2 h-2 rounded-full bg-primary-500"
+                />
+              ))}
+            </div>
+            <p className="text-xs text-slate-500">Loading your workspace…</p>
+          </>
+        ) : (
+          <div className="text-center space-y-3">
+            <p className="text-sm text-slate-400">Taking longer than expected…</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-sm font-semibold text-white transition"
+            >
+              Retry
+            </button>
+          </div>
+        )}
       </div>
     );
   }
+
   if (!firebaseUser) {
     return <Navigate to="/" replace />;
   }
