@@ -30,6 +30,10 @@ import { QRScannerPage } from "./pages/QRScannerPage";
 import { DeviceDetailsPage } from "./pages/DeviceDetailsPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import { TermsPage } from "./pages/TermsPage";
+import { FeaturesPage } from "./pages/FeaturesPage";
+import { PricingPage } from "./pages/PricingPage";
+import { SecurityPage } from "./pages/SecurityPage";
+import { AboutPage } from "./pages/AboutPage";
 import { DEVICE_STATUS } from "./constants";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -179,6 +183,10 @@ function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/terms" element={<TermsPage />} />
+      <Route path="/features" element={<FeaturesPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/security" element={<SecurityPage />} />
+      <Route path="/about" element={<AboutPage />} />
       <Route path="/scan" element={<QRScannerPage />} />
       <Route path="/d/:orgSlug/:deviceId" element={<DeviceScanPage />} />
       <Route

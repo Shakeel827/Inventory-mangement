@@ -372,15 +372,15 @@ export function LandingPage() {
               <div>
                 <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">Product</h4>
                 <ul className="space-y-2.5 text-sm text-slate-500">
-                  <li><Link to="/register" className="hover:text-white transition">Features</Link></li>
-                  <li><Link to="/register" className="hover:text-white transition">Pricing</Link></li>
-                  <li><Link to="/register" className="hover:text-white transition">Security</Link></li>
+                  <li><Link to="/features" className="hover:text-white transition">Features</Link></li>
+                  <li><Link to="/pricing" className="hover:text-white transition">Pricing</Link></li>
+                  <li><Link to="/security" className="hover:text-white transition">Security</Link></li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">Company</h4>
                 <ul className="space-y-2.5 text-sm text-slate-500">
-                  <li><Link to="/register" className="hover:text-white transition">About</Link></li>
+                  <li><Link to="/about" className="hover:text-white transition">About</Link></li>
                   <li><a href="mailto:support@pandascanpros.in" className="hover:text-white transition">Contact</a></li>
                 </ul>
               </div>
