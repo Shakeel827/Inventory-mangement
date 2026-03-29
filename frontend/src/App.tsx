@@ -28,13 +28,16 @@ import { StickersPage } from "./pages/StickersPage";
 import { UsersPage } from "./pages/UsersPage";
 import { QRScannerPage } from "./pages/QRScannerPage";
 import { DeviceDetailsPage } from "./pages/DeviceDetailsPage";
-import { PrivacyPage } from "./pages/PrivacyPage";
+import { DEVICE_STATUS } from "./constants";
 import { TermsPage } from "./pages/TermsPage";
 import { FeaturesPage } from "./pages/FeaturesPage";
 import { PricingPage } from "./pages/PricingPage";
 import { SecurityPage } from "./pages/SecurityPage";
 import { AboutPage } from "./pages/AboutPage";
-import { DEVICE_STATUS } from "./constants";
+import { PrivacyPage } from "./pages/PrivacyPage";
+import { AIAssistantPage } from "./pages/AIAssistantPage";
+import { ReservationsPage } from "./pages/ReservationsPage";
+import { VendorsPage } from "./pages/VendorsPage";
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { firebaseUser, loading } = useAuth();
@@ -204,6 +207,9 @@ function AppRoutes() {
                 <Route path="reports" element={<ReportsPage />} />
                 <Route path="audit" element={<AuditLogsPage />} />
                 <Route path="users" element={<UsersPage />} />
+                <Route path="ai" element={<AIAssistantPage />} />
+                <Route path="reservations" element={<ReservationsPage />} />
+                <Route path="vendors" element={<VendorsPage />} />
               </Routes>
             </AppLayout>
           </ProtectedRoute>
