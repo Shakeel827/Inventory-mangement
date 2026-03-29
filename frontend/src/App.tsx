@@ -60,6 +60,7 @@ function DeviceScanPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<"check_in" | "check_out" | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -84,10 +85,7 @@ function DeviceScanPage() {
       const ref = doc(db, "devices", deviceId);
       const nextStatus = type === "check_out" ? DEVICE_STATUS.CHECKED_OUT : DEVICE_STATUS.AVAILABLE;
 
-      await updateDoc(ref, {
-        status: nextStatus,
-        updatedAt: serverTimestamp()
-      });
+      await updateDoc(ref, { status: nextStatus, updatedAt: serverTimestamp() });
 
       await addDoc(collection(db, "deviceActivity"), {
         orgId: device?.orgId || (orgSlug || "demo-org"),
@@ -99,6 +97,7 @@ function DeviceScanPage() {
       });
 
       setDevice((prev: any) => ({ ...prev, status: nextStatus }));
+      setDone(type);
     } catch (e: any) {
       setError(e.message || "Failed to update device");
     } finally {
@@ -106,73 +105,141 @@ function DeviceScanPage() {
     }
   };
 
-  if (loading)
-    return (
-      <p className="p-4 text-sm text-slate-200 bg-slate-950">
-        Loading device...
-      </p>
-    );
-  if (error)
-    return (
-      <p className="p-4 text-sm text-rose-400 bg-rose-950/60 border border-rose-900">
-        {error}
-      </p>
-    );
-  if (!device) return <p className="p-4 text-sm">No device data</p>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#050810]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
+        <p className="text-sm text-slate-400">Loading device…</p>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#050810] px-4">
+      <div className="text-center">
+        <div className="text-5xl mb-4">❌</div>
+        <p className="text-rose-400 font-semibold mb-2">{error}</p>
+        <Link to="/dashboard" className="text-sm text-primary-400 underline">← Back to Dashboard</Link>
+      </div>
+    </div>
+  );
+
+  if (!device) return null;
 
   const isAvailable = device.status === DEVICE_STATUS.AVAILABLE;
 
+  // Collect custom fields (any field not in the standard set)
+  const standardKeys = new Set(["orgId", "name", "status", "categoryId", "location", "model", "serialNumber", "imageUrl", "createdAt", "updatedAt"]);
+  const customEntries = Object.entries(device).filter(([k]) => !standardKeys.has(k) && k !== "id");
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#050810] px-4 py-8">
+      {/* Background glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className={`absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl ${isAvailable ? "bg-emerald-600/10" : "bg-amber-600/10"}`} />
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl"
+        className="relative w-full max-w-sm"
       >
-        <p className="text-[11px] uppercase tracking-wide text-slate-400 mb-2">
-          Device
-        </p>
-        <h2 className="text-xl font-semibold text-slate-50">
-          {device.name || device.id}
-        </h2>
-        <p className="mt-1 text-xs text-slate-400 break-all">
-          ID: {device.id}
-        </p>
-
-        <div className="mt-4">
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-              isAvailable
-                ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/40"
-                : "bg-amber-500/10 text-amber-300 border border-amber-500/40"
-            }`}
-          >
-            {device.status}
-          </span>
-        </div>
-
-        <div className="mt-6 flex gap-3">
-          <button
-            disabled={!isAvailable || actionLoading}
-            onClick={() => handleCheck("check_out")}
-            className="flex-1 h-10 rounded-lg bg-primary-600 text-sm font-medium text-white shadow-md shadow-primary-600/40 hover:bg-primary-700 disabled:opacity-50 disabled:hover:bg-primary-600 transition"
-          >
-            Check Out
-          </button>
-          <button
-            disabled={isAvailable || actionLoading}
-            onClick={() => handleCheck("check_in")}
-            className="flex-1 h-10 rounded-lg border border-slate-700 bg-slate-900 text-sm font-medium text-slate-100 hover:bg-slate-800 disabled:opacity-50 transition"
-          >
-            Check In
-          </button>
-        </div>
-
-        <p className="mt-4 text-[11px] text-slate-400">
-          <Link to="/" className="underline underline-offset-2">
-            Go to dashboard
+        {/* Logo */}
+        <div className="text-center mb-6">
+          <Link to="/" className="inline-flex items-center gap-2">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-xs font-bold">IQ</div>
+            <span className="font-bold text-white">InventoryQ</span>
           </Link>
-        </p>
+        </div>
+
+        {/* Device Card */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl overflow-hidden">
+          {/* Status banner */}
+          <div className={`px-5 py-3 text-center text-xs font-bold uppercase tracking-widest ${
+            isAvailable ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"
+          }`}>
+            {isAvailable ? "✓ Available for Check-Out" : "⏳ Currently Checked Out"}
+          </div>
+
+          <div className="p-6">
+            {/* Device info */}
+            <div className="mb-6">
+              <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Device</p>
+              <h1 className="text-2xl font-black text-white">{device.name || device.id}</h1>
+              {device.model && <p className="text-sm text-slate-400 mt-0.5">{device.model}</p>}
+              {device.location && (
+                <p className="text-xs text-slate-500 mt-1">📍 {device.location}</p>
+              )}
+              {device.serialNumber && (
+                <p className="text-xs text-slate-500">🔢 {device.serialNumber}</p>
+              )}
+            </div>
+
+            {/* Custom fields */}
+            {customEntries.length > 0 && (
+              <div className="mb-6 p-3 rounded-xl bg-white/5 border border-white/8 space-y-1.5">
+                {customEntries.map(([key, val]) => (
+                  <div key={key} className="flex justify-between text-xs">
+                    <span className="text-slate-500 capitalize">{key.replace(/_/g, " ")}</span>
+                    <span className="text-slate-300 font-medium">{String(val)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Success state */}
+            {done && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className={`mb-4 p-3 rounded-xl text-center text-sm font-semibold ${
+                  done === "check_out"
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                    : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                }`}
+              >
+                {done === "check_out" ? "✓ Checked Out Successfully" : "✓ Checked In Successfully"}
+              </motion.div>
+            )}
+
+            {/* Error */}
+            {error && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-950/60 border border-rose-900/60 text-xs text-rose-400">
+                {error}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                disabled={!isAvailable || actionLoading}
+                onClick={() => handleCheck("check_out")}
+                className="h-14 rounded-2xl bg-primary-600 hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-xl shadow-primary-600/30 transition active:scale-95 flex flex-col items-center justify-center gap-0.5"
+              >
+                <span className="text-xl">📤</span>
+                <span>{actionLoading ? "…" : "Check Out"}</span>
+              </button>
+              <button
+                disabled={isAvailable || actionLoading}
+                onClick={() => handleCheck("check_in")}
+                className="h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-xl shadow-emerald-600/30 transition active:scale-95 flex flex-col items-center justify-center gap-0.5"
+              >
+                <span className="text-xl">📥</span>
+                <span>{actionLoading ? "…" : "Check In"}</span>
+              </button>
+            </div>
+
+            <p className="mt-4 text-center text-xs text-slate-500">
+              Logged as: {auth.currentUser?.email || "Guest"}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 text-center">
+          <Link to="/dashboard" className="text-sm text-primary-400 hover:text-primary-300 transition underline underline-offset-2">
+            ← Go to Dashboard
+          </Link>
+        </div>
       </motion.div>
     </div>
   );
