@@ -2,20 +2,27 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // Read the user's Firestore profile (orgId lives here, not in the token)
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function userOrgId() {
-      return request.auth.token.orgId;
+      return userDoc().orgId;
+    }
+
+    function getUserRole() {
+      return userDoc().role;
     }
 
     function isOrgMember(resourceOrgId) {
       return isSignedIn() && userOrgId() == resourceOrgId;
-    }
-
-    function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
     function isAdmin() {
@@ -26,76 +33,86 @@ service cloud.firestore {
       return isSignedIn() && getUserRole() in ['admin', 'manager'];
     }
 
-    // Users: org-scoped profiles (non-sensitive)
+    // ── Users ─────────────────────────────────────────────────────────────────
     match /users/{userId} {
-      allow read: if isSignedIn() && userOrgId() == resource.data.orgId;
-      // Allow client to create/update own profile document in this dev setup.
+      // Users can read their own doc; admins can read all in their org
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId ||
+        (isAdmin() && resource.data.orgId == userOrgId())
+      );
+      // Anyone signed in can create/update their own profile
       allow create, update: if isSignedIn() && request.auth.uid == userId;
-      // Only admins can update other users' roles
-      allow update: if isAdmin() && isOrgMember(resource.data.orgId);
+      // Admins can update other users in same org
+      allow update: if isAdmin() && resource.data.orgId == userOrgId();
       allow delete: if false;
     }
 
-    // Categories: only admin and manager can manage
+    // ── Categories ────────────────────────────────────────────────────────────
     match /categories/{categoryId} {
       allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
-
-      allow create, update, delete: if isAdminOrManager()
-        && request.resource.data.orgId == userOrgId();
+      allow create: if isAdminOrManager() && request.resource.data.orgId == userOrgId();
+      allow update, delete: if isAdminOrManager() && isOrgMember(resource.data.orgId);
     }
 
-    // Devices: only admin and manager can manage
+    // ── Devices ───────────────────────────────────────────────────────────────
     match /devices/{deviceId} {
       allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
-
-      allow create: if isAdminOrManager()
-        && request.resource.data.orgId == userOrgId();
-
-      // Allow status updates for check-in/check-out by all users
-      allow update: if isSignedIn()
-        && isOrgMember(resource.data.orgId)
-        && request.resource.data.orgId == resource.data.orgId
-        && (
-          // Admin/Manager can update everything
-          isAdminOrManager()
-          // Scanner users can only update status field
-          || (getUserRole() == 'user' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']))
-        );
-
+      allow create: if isAdminOrManager() && request.resource.data.orgId == userOrgId();
+      allow update: if isSignedIn() && isOrgMember(resource.data.orgId) && (
+        isAdminOrManager() ||
+        // Scanners can only update status
+        (getUserRole() == 'user' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']))
+      );
       allow delete: if isAdminOrManager() && isOrgMember(resource.data.orgId);
     }
 
-    // Device activity: allow all authenticated users to create logs
+    // ── Device Activity ───────────────────────────────────────────────────────
     match /deviceActivity/{activityId} {
       allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
-
-      allow create: if isSignedIn()
-        && request.resource.data.orgId == userOrgId()
-        && request.resource.data.userId == request.auth.uid;
-
+      allow create: if isSignedIn() && request.resource.data.orgId == userOrgId();
       allow update, delete: if false;
     }
 
-    // Maintenance logs: only admin and manager
+    // ── Custom Fields ─────────────────────────────────────────────────────────
+    match /customFields/{orgId} {
+      allow read: if isSignedIn() && orgId == userOrgId();
+      allow write: if isAdminOrManager() && orgId == userOrgId();
+    }
+
+    // ── Maintenance Logs ──────────────────────────────────────────────────────
     match /maintenanceLogs/{logId} {
       allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
-
-      allow create: if isAdminOrManager()
-        && request.resource.data.orgId == userOrgId();
-
+      allow create: if isAdminOrManager() && request.resource.data.orgId == userOrgId();
       allow update, delete: if false;
     }
 
-    // Audit logs (read-only from client)
+    // ── Reservations ──────────────────────────────────────────────────────────
+    match /reservations/{resId} {
+      allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
+      allow create: if isSignedIn() && request.resource.data.orgId == userOrgId();
+      allow delete: if isSignedIn() && isOrgMember(resource.data.orgId) && (
+        isAdminOrManager() || resource.data.userId == request.auth.uid
+      );
+      allow update: if isAdminOrManager() && isOrgMember(resource.data.orgId);
+    }
+
+    // ── Vendors ───────────────────────────────────────────────────────────────
+    match /vendors/{vendorId} {
+      allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
+      allow create: if isAdminOrManager() && request.resource.data.orgId == userOrgId();
+      allow update, delete: if isAdminOrManager() && isOrgMember(resource.data.orgId);
+    }
+
+    // ── Audit Logs ────────────────────────────────────────────────────────────
     match /auditLogs/{auditId} {
       allow read: if isSignedIn() && isOrgMember(resource.data.orgId);
       allow create, update, delete: if false;
     }
 
-    // Fallback: deny everything else
+    // ── Fallback: deny everything else ────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }
   }
 }
-
