@@ -38,16 +38,16 @@ export function AboutPage() {
       tags: ["React Native", "Capacitor", "iOS", "Android"]
     },
     {
-      icon: "☁️",
-      title: "Cloud Infrastructure",
-      desc: "Firebase, Vercel, and Google Cloud deployments with 99.9% uptime, auto-scaling, and global CDN.",
-      tags: ["Firebase", "Vercel", "GCP", "CDN"]
+      icon: "🔗",
+      title: "Supply Chain Management",
+      desc: "End-to-end supply chain visibility — track suppliers, purchase orders, stock levels, and delivery timelines in real time. Reduce costs, prevent stockouts, and optimize procurement with intelligent dashboards.",
+      tags: ["Procurement", "Vendors", "Stock Control", "Real-Time"]
     },
     {
-      icon: "🔧",
-      title: "Maintenance & Support",
-      desc: "Ongoing maintenance, updates, security patches, and 24/7 support to keep your systems running perfectly.",
-      tags: ["24/7 Support", "Updates", "Security", "SLA"]
+      icon: "🎙️",
+      title: "AI Voice Agent & Automation",
+      desc: "Deploy AI voice agents that handle customer queries, automate repetitive workflows, and detect anomalies in your operations. From voice-powered inventory updates to automated alerts and intelligent process detection — we make your business run itself.",
+      tags: ["Voice AI", "Automation", "Anomaly Detection", "GPT-4o"]
     },
   ];
 
